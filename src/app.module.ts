@@ -16,5 +16,5 @@ import { Report } from './reports/reports.entity';
     UsersModule,
     ReportsModule,
   ],
-  })
+})
 export class AppModule {}

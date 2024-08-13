@@ -1,9 +1,24 @@
-import { CallHandler, ExecutionContext, NestInterceptor } from '@nestjs/common';
+import {
+  CallHandler,
+  ExecutionContext,
+  NestInterceptor,
+  UseInterceptors,
+} from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { map, Observable } from 'rxjs';
-import { UserDto } from '../users/dtos/user.dto';
+
+//Zwraca nam przefiltorwane dane z user controller w tym wypadku bez passwordu
+
+interface ClassConstructor {
+  new (...args: any[]): {};
+}
+
+export function Serialize(dto: ClassConstructor) {
+  return UseInterceptors(new SerializeInterceptor(dto));
+}
 
 export class SerializeInterceptor implements NestInterceptor {
+  constructor(private dto: any) {}
   intercept(
     context: ExecutionContext,
     handler: CallHandler<any>,
@@ -14,8 +29,10 @@ export class SerializeInterceptor implements NestInterceptor {
     return handler.handle().pipe(
       map((data: any) => {
         //run something before the response is sent out - 3
-        return plainToInstance(UserDto, data, {
-          exposeDefaultValues: true,
+        console.log('SerializeInterceptor - before the response: ', data);
+
+        return plainToInstance(this.dto, data, {
+          excludeExtraneousValues: true,
         });
       }),
     );
